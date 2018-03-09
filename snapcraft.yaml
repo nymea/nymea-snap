@@ -1,0 +1,62 @@
+name: nymea
+version: 0.9.0
+summary: An open source IoT server
+description: | 
+  The nymea daemon is a plugin based IoT (Internet of Things) server. 
+  The server works like a translator for devices, things and services 
+  and allows them to interact. With the powerful rule engine you are 
+  able to connect any device available in the system and create individual 
+  scenes and behaviors for your environment.
+
+grade: stable
+confinement: strict
+
+apps:
+  nymead:
+    command: env PATH=$PATH:$SNAP/bin nymead-wrapper.sh
+    daemon: simple
+    plugs: 
+      - avahi-control
+      - avahi-observe
+      - bluez
+      - network
+      - network-bind
+      - network-manager
+
+    slots: [ nymead-dbus ]
+    restart-condition: always
+
+  nymea-cli:
+    command: env PATH=$PATH:$SNAP/bin qt5-launch nymea-cli
+    plugs:
+      - network
+      - network-bind
+
+
+slots:
+  # Note: this slot opens the D-Bus interface of nymea from in the snap environment
+  nymead-dbus:
+    interface: dbus
+    name: io.guh.nymead
+    bus: system
+
+
+parts:
+  # Custom launcher to support also armhf
+  scripts:
+    plugin: dump
+    source: .
+    organize:
+      qt5-launch: bin/
+      nymead.conf: template-nymead.conf
+      nymead-wrapper.sh: bin/
+
+
+  # Adding the whole nymea project containig libnymea and nymea-plugins
+  nymea:
+    plugin: nil
+    stage-packages:
+      - nymea
+      - nymea-cli
+      - nymea-plugins
+      - nymea-plugins-maker
