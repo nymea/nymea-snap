@@ -55,6 +55,7 @@ parts:
   # Adding the whole nymea project containig libnymea and nymea-plugins
   nymea:
     plugin: nil
+    build-attributes: [keep-execstack]
     stage-packages:
       - nymea
       - nymea-cli
