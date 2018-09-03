@@ -46,6 +46,7 @@ parts:
   scripts:
     plugin: dump
     source: .
+    build-attributes: [keep-execstack]
     organize:
       qt5-launch: bin/
       nymead.conf: template-nymead.conf
