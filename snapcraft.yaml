@@ -15,23 +15,29 @@ apps:
   nymead:
     command: env PATH=$PATH:$SNAP/bin nymead-wrapper.sh
     daemon: simple
+    restart-condition: always
+    slots: [ nymead-dbus ]
     plugs: 
       - avahi-control
       - avahi-observe
       - bluez
+      - can-bus
+      - device-buttons
       - network
       - network-bind
+      - network-observe
       - network-manager
-
-    slots: [ nymead-dbus ]
-    restart-condition: always
+      - network-setup-control
+      - hardware-observe 
+      - shutdown
+      - system-files   
+      - snapd-control #For the snap plugin
 
   nymea-cli:
     command: env PATH=$PATH:$SNAP/bin qt5-launch nymea-cli
     plugs:
       - network
       - network-bind
-
 
 slots:
   # Note: this slot opens the D-Bus interface of nymea from in the snap environment
@@ -62,3 +68,4 @@ parts:
       - nymea-cli
       - nymea-plugins
       - nymea-plugins-maker
+      - nymea-plugin-snapd
