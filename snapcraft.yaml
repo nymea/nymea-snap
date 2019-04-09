@@ -21,7 +21,6 @@ apps:
       - avahi-control
       - avahi-observe
       - bluez
-      - can-bus
       - device-buttons
       - network
       - network-bind
