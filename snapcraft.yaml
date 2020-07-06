@@ -62,3 +62,5 @@ parts:
       - nymea-cli
       - nymea-plugins
       - nymea-plugins-maker
+      - nymea-zeroconf-plugin-avahi
+
