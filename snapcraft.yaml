@@ -12,6 +12,11 @@ grade: stable
 confinement: strict
 adopt-info: nymea
 
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
 apps:
   nymead:
     command: bin/nymead-wrapper.sh
