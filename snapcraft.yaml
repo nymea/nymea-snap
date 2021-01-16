@@ -8,12 +8,13 @@ description: |
   able to connect any device available in the system and create individual 
   scenes and behaviors for your environment.
 
+base: core20
 grade: stable
 confinement: strict
 
 apps:
   nymead:
-    command: env PATH=$PATH:$SNAP/bin nymead-wrapper.sh
+    command: bin/nymead-wrapper.sh
     daemon: simple
     plugs: 
       - avahi-control
@@ -30,7 +31,8 @@ apps:
     restart-condition: always
 
   nymea-cli:
-    command: env PATH=$PATH:$SNAP/bin qt5-launch nymea-cli
+    command-chain: [ bin/qt5-launch ]
+    command: usr/bin/nymea-cli
     plugs:
       - network
       - network-bind
