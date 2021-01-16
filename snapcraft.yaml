@@ -19,9 +19,12 @@ apps:
       - avahi-control
       - avahi-observe
       - bluez
+      - hardware-observe
       - network
       - network-bind
       - network-manager
+      - raw-usb
+      - snapd-control
 
     slots: [ nymead-dbus ]
     restart-condition: always
@@ -42,6 +45,16 @@ slots:
 
 
 parts:
+  # Set up the deb archive
+  nymea-archive:
+    plugin: nil
+    build-packages:
+      - software-properties-common
+    override-pull: |
+      snapcraftctl pull
+      apt-key adv --keyserver keyserver.ubuntu.com --recv-key A1A19ED6
+      add-apt-repository --yes "deb http://repository.nymea.io $( lsb_release -sc ) main"
+
   # Custom launcher to support also armhf
   scripts:
     plugin: dump
@@ -55,12 +68,12 @@ parts:
 
   # Adding the whole nymea project containig libnymea and nymea-plugins
   nymea:
+    after: [nymea-archive]
     plugin: nil
     build-attributes: [keep-execstack]
     stage-packages:
       - nymea
       - nymea-cli
-      - nymea-plugins
-      - nymea-plugins-maker
+      - nymea-plugins-all
       - nymea-zeroconf-plugin-avahi
 
