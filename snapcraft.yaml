@@ -1,5 +1,4 @@
 name: nymea
-version: 0.9.0
 summary: An open source IoT server
 description: | 
   The nymea daemon is a plugin based IoT (Internet of Things) server. 
@@ -11,6 +10,7 @@ description: |
 base: core20
 grade: stable
 confinement: strict
+adopt-info: nymea
 
 apps:
   nymead:
@@ -115,6 +115,8 @@ parts:
       - nymea-cli
       - nymea-plugins-all
       - nymea-zeroconf-plugin-avahi
+    override-build:
+      snapcraftctl set-version $( LANG=C apt-cache policy nymea | sed -rne 's/^\s+Candidate:\s+([^-]*)~.+$/\1/p' )
     stage:
       - -usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/libQt5SerialPort.so*
 
