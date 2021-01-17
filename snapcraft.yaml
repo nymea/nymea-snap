@@ -61,6 +61,7 @@ parts:
       snapcraftctl pull
       apt-key adv --keyserver keyserver.ubuntu.com --recv-key A1A19ED6
       add-apt-repository --yes "deb http://repository.nymea.io $( lsb_release -sc ) main"
+      # %%ADDITIONAL_REPOS%%
 
   # Qt5SerialPort without locking
   qtserialport:
