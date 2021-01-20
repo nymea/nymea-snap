@@ -30,7 +30,6 @@ apps:
       - network-bind
       - network-manager
       - raw-usb
-      - snapd-control
 
     slots: [ nymead-dbus ]
     restart-condition: always
