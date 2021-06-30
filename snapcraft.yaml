@@ -59,6 +59,7 @@ parts:
     build-attributes: [keep-execstack]
     stage-packages:
       - nymea
+      - nymea-data
       - nymea-cli
       - nymea-plugins
       - nymea-plugins-maker
