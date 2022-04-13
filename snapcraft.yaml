@@ -1,5 +1,4 @@
 name: nymea
-version: 0.9.0
 summary: An open source IoT server
 description: | 
   The nymea daemon is a plugin based IoT (Internet of Things) server. 
@@ -8,26 +7,37 @@ description: |
   able to connect any device available in the system and create individual 
   scenes and behaviors for your environment.
 
+base: core20
 grade: stable
 confinement: strict
+adopt-info: nymea
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
 
 apps:
   nymead:
-    command: env PATH=$PATH:$SNAP/bin nymead-wrapper.sh
+    command: bin/nymead-wrapper.sh
     daemon: simple
     plugs: 
       - avahi-control
       - avahi-observe
       - bluez
+      - hardware-observe
       - network
       - network-bind
       - network-manager
+      - raw-usb
+      - snapd-control
 
     slots: [ nymead-dbus ]
     restart-condition: always
 
   nymea-cli:
-    command: env PATH=$PATH:$SNAP/bin qt5-launch nymea-cli
+    command-chain: [ bin/qt5-launch ]
+    command: usr/bin/nymea-cli
     plugs:
       - network
       - network-bind
@@ -42,6 +52,53 @@ slots:
 
 
 parts:
+  # Set up the deb archive
+  nymea-archive:
+    plugin: nil
+    build-packages:
+      - software-properties-common
+    override-pull: |
+      snapcraftctl pull
+      apt-key adv --keyserver keyserver.ubuntu.com --recv-key A1A19ED6
+      add-apt-repository --yes "deb http://repository.nymea.io $( lsb_release -sc ) main"
+
+  # Qt5SerialPort without locking
+  qtserialport:
+    plugin: nil
+    source: git://git.launchpad.net/ubuntu/+source/qtserialport-opensource-src
+    source-branch: ubuntu/focal
+    build-packages:
+      - devscripts
+      - equivs
+    override-pull: |
+      snapcraftctl pull
+      mk-build-deps --install --tool "apt-get --yes -o Debug::pkgProblemResolver=yes"
+    override-build: |
+      patch --verbose -p0 <<EOF
+      --- src/serialport/qserialport_unix.cpp
+      +++ src/serialport/qserialport_unix.cpp
+      @@ -105,14 +105,7 @@
+       QString serialPortLockFilePath(const QString &portName)
+       {
+           static const QStringList lockDirectoryPaths = QStringList()
+      -        << QStringLiteral("/var/lock")
+      -        << QStringLiteral("/etc/locks")
+      -        << QStringLiteral("/var/spool/locks")
+      -        << QStringLiteral("/var/spool/uucp")
+               << QStringLiteral("/tmp")
+      -        << QStringLiteral("/var/tmp")
+      -        << QStringLiteral("/var/lock/lockdev")
+      -        << QStringLiteral("/run/lock")
+       #ifdef Q_OS_ANDROID
+               << QStringLiteral("/data/local/tmp")
+       #endif
+      EOF
+
+      env DEB_BUILD_OPTIONS=parallel=$( nproc ) dh build --parallel
+      dh install
+      mkdir -p ${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}
+      cp --archive debian/tmp/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/libQt5SerialPort.so.5* ${SNAPCRAFT_PART_INSTALL}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/
+
   # Custom launcher to support also armhf
   scripts:
     plugin: dump
@@ -55,13 +112,17 @@ parts:
 
   # Adding the whole nymea project containig libnymea and nymea-plugins
   nymea:
+    after: [nymea-archive, qtserialport]
     plugin: nil
     build-attributes: [keep-execstack]
     stage-packages:
       - nymea
       - nymea-data
       - nymea-cli
-      - nymea-plugins
-      - nymea-plugins-maker
+      - nymea-plugins-all
       - nymea-zeroconf-plugin-avahi
+    override-build:
+      snapcraftctl set-version $( LANG=C apt-cache policy nymea | sed -rne 's/^\s+Candidate:\s+([^-]*)~.+$/\1/p' )
+    stage:
+      - -usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/libQt5SerialPort.so*
 
